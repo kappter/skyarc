@@ -30,7 +30,7 @@ const deepObjects=[
 const skyConstellations=[
  {id:'orion',name:'Orion',color:'#75d5e9',stars:[[5.92,7.4],[5.42,6.3],[5.53,-.3],[5.60,-1.2],[5.68,-1.9],[5.80,-9.7],[5.24,-8.2],[5.58,-5.4]],edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[2,7]]},
  {id:'ursa',name:'Ursa Major · Big Dipper',color:'#a9c0ff',stars:[[11.06,61.75],[11.03,56.38],[11.90,53.69],[12.26,57.03],[12.90,55.96],[13.40,54.93],[13.79,49.31]],edges:[[0,1],[1,2],[2,3],[3,0],[3,4],[4,5],[5,6]]},
- {id:'cassiopeia',name:'Cassiopeia',color:'#f2b6d8',stars:[[.15,59.15],[.15,59.15],[.95,60.7],[1.43,60.2],[1.91,63.7]],edges:[[0,1],[1,2],[2,3],[3,4]]},
+ {id:'cassiopeia',name:'Cassiopeia',color:'#f2b6d8',stars:[[.15,59.15],[.68,56.5],[.95,60.7],[1.43,60.2],[1.91,63.7]],edges:[[0,1],[1,2],[2,3],[3,4]]},
  {id:'scorpius',name:'Scorpius',color:'#ff927e',stars:[[16.09,-22.62],[16.01,-22.62],[16.49,-26.43],[16.84,-34.29],[16.91,-37.1],[16.90,-42.36],[17.56,-37.1]],edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]]},
  {id:'leo',name:'Leo',color:'#ffd16a',stars:[[10.14,11.97],[10.33,19.84],[10.14,11.97],[11.24,15.43],[11.82,14.57],[11.24,20.52],[9.88,26.0]],edges:[[0,1],[1,6],[0,2],[2,3],[3,4],[4,5]]},
  {id:'cygnus',name:'Cygnus · Northern Cross',color:'#91d9ff',stars:[[20.69,45.28],[20.37,40.26],[19.51,27.96],[19.75,45.13],[19.94,35.08]],edges:[[0,1],[1,2],[3,1],[1,4]]},
@@ -72,8 +72,8 @@ function drawSkyMap(){
  let count=0;
  const place=(ra,dec,name,color,kind='object')=>{const pos=horizontal(ra,dec,s,lst);if(pos.alt<0)return null;const [x,y]=project(pos.alt,pos.az);count++;return {x,y,pos,name,color,kind}};
  const visible=[];
- bodies.forEach((b,i)=>{if(!$('[data-layer="body-'+i+'"]')?.checked)return;const m=model(b,s),ha=(s.h-m.tr)*15,ra=((lst-ha/15)%24+24)%24,p=place(ra,m.dec,b.name,b.color,'planet');if(p)visible.push(p)});
- deepObjects.forEach(o=>{if(!$('[data-layer="'+o.id+'"]')?.checked)return;const p=place(o.ra,o.dec,o.name,o.color,o.group);if(p)visible.push(p)});
+ bodies.forEach((b,i)=>{if(!document.querySelector('[data-layer="body-'+i+'"]')?.checked)return;const m=model(b,s),ha=(s.h-m.tr)*15,ra=((lst-ha/15)%24+24)%24,p=place(ra,m.dec,b.name,b.color,'planet');if(p)visible.push(p)});
+ deepObjects.forEach(o=>{if(!document.querySelector('[data-layer="'+o.id+'"]')?.checked)return;const p=place(o.ra,o.dec,o.name,o.color,o.group);if(p)visible.push(p)});
  skyConstellations.forEach(c=>{if(!$('[data-layer="const-'+c.id+'"]')?.checked)return;const pts=c.stars.map(([ra,dec])=>place(ra,dec,'',c.color,'star'));c.edges.forEach(([a,b])=>{if(!pts[a]||!pts[b])return;out+='<line class="constellation-line" x1="'+pts[a].x+'" y1="'+pts[a].y+'" x2="'+pts[b].x+'" y2="'+pts[b].y+'" stroke="'+c.color+'"/>'});pts.forEach(p=>{if(p)visible.push(p)})});
  visible.forEach((p,i)=>{const rr=p.kind==='planet'?5:p.kind==='star'?2.6:p.kind==='Galaxies'?4.5:p.kind==='Nebulae'?4.5:6;out+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(rr+5)+'" fill="'+p.color+'" opacity=".10"/><circle cx="'+p.x+'" cy="'+p.y+'" r="'+rr+'" fill="'+p.color+'" stroke="#07101b" stroke-width="1.5"/>';if(p.name){const anchor=p.x>cx+90?'end':'start',dx=anchor==='end'?-8:8;out+='<text class="sky-label" text-anchor="'+anchor+'" x="'+(p.x+dx)+'" y="'+(p.y-7-(i%2)*11)+'" fill="'+p.color+'">'+p.name+'</text>'}});
  $('skymap').innerHTML=out;$('map-count').textContent=count+' visible above horizon';$('map-status').textContent='Local sidereal time '+fmt(lst)+' · '+fmt(s.h)+' local';
