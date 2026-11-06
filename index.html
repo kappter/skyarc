@@ -117,12 +117,15 @@ for(let i=0;i<55;i++){let xx=65+((i*157)%780),yy=43+((i*73)%225);svg+=`<circle c
 function path(mm){let points=[];for(let i=0;i<=240;i++)points.push((i?'L':'M')+x(i/10).toFixed(1)+','+y(Math.max(-4,altitude(i/10,mm,s))).toFixed(1));return points.join(' ')}
 let p=path(m);
 svg+='<path d="'+p+' L850,300 L60,300 Z" fill="url(#fade)"/><path d="'+path(sun)+'" fill="none" stroke="#edca8e" opacity=".45" stroke-dasharray="5 7"/>';
+const sunAlt=altitude(s.h,sun,s);
+svg+='<circle cx="'+x(s.h)+'" cy="'+y(Math.max(-4,sunAlt))+'" r="4" fill="#edca8e" stroke="#0a1220" stroke-width="1.5"><title>Sun at '+sunAlt.toFixed(1)+'° altitude</title></circle>';
 let overlayCount=0;
 function overlayArc(name,color,altAt){
  let d='';for(let i=0;i<=240;i++){const hh=i/10,aa=altAt(hh);d+=(i?'L':'M')+x(hh).toFixed(1)+','+y(Math.max(-4,aa)).toFixed(1)+' ';}
  svg+='<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5 5" opacity=".78"><title>'+name+' daily altitude arc</title></path>';
- const ca=altAt(s.h);
- if(ca>=0)svg+='<circle cx="'+x(s.h)+'" cy="'+y(ca)+'" r="3.5" fill="'+color+'"/><text x="'+Math.min(820,x(s.h)+7)+'" y="'+(y(ca)-6)+'" fill="'+color+'" font-size="10">'+name+'</text>';
+ const ca=altAt(s.h),trackerY=y(Math.max(-4,ca));
+ svg+='<circle cx="'+x(s.h)+'" cy="'+trackerY+'" r="4" fill="'+color+'" stroke="#0a1220" stroke-width="1.5"><title>'+name+' at '+ca.toFixed(1)+'° altitude</title></circle>';
+ if(ca>=0)svg+='<text x="'+Math.min(820,x(s.h)+7)+'" y="'+(trackerY-6)+'" fill="'+color+'" font-size="10">'+name+'</text>';
  overlayCount++;
 }
 bodies.forEach((bb,i)=>{const layer=document.querySelector('[data-layer="body-'+i+'"]');if(!layer||!layer.checked||focusLayer==='body-'+i||(!focusLayer&&i===selected)||i===0)return;const mm=model(bb,s);overlayArc(bb.name,bb.color,hh=>altitude(hh,mm,s));});
@@ -133,6 +136,7 @@ skyConstellations.forEach(c=>{const layer=document.querySelector('[data-layer="c
 svg+='<path d="'+p+'" fill="none" stroke="'+b.color+'" stroke-width="2.8"/><line x1="'+x(s.h)+'" x2="'+x(s.h)+'" y1="35" y2="298" stroke="#b6c5da" stroke-dasharray="3 5" opacity=".4"/>';
 if(overlayCount)svg+='<text x="72" y="50" fill="#aab9ce" font-size="10" letter-spacing="1">CHECKED LAYER ARCS · DASHED</text>';
 if(a>=0)svg+='<circle cx="'+x(s.h)+'" cy="'+y(a)+'" r="18" fill="'+b.color+'" opacity=".09"/><circle cx="'+x(s.h)+'" cy="'+y(a)+'" r="6" fill="'+b.color+'"/><text x="'+Math.min(780,Math.max(70,x(s.h)+15))+'" y="'+(y(a)-13)+'" fill="'+b.color+'" font-size="13">'+b.name+' · '+a.toFixed(0)+'°</text>';
+else svg+='<circle cx="'+x(s.h)+'" cy="'+y(Math.max(-4,a))+'" r="4" fill="'+b.color+'" stroke="#0a1220" stroke-width="1.5"><title>'+b.name+' below horizon · '+a.toFixed(1)+'°</title></circle>';
 for(let h of [0,6,12,18,24])svg+=`<text x="${x(h)}" y="325" text-anchor="middle" fill="#8b9db5" font-size="11">${h===24?'24:00':fmt(h)}</text>`;$('sky').innerHTML=svg;
 $('rows').innerHTML=bodies.map((bb,j)=>{let mm=model(bb,s),bands='';for(let i=0;i<144;i++){let h=i/6;if(altitude(h,mm,s)>=0)bands+=`<span class="band" style="left:${i/144*100}%;width:.8%;background:${bb.color}"></span>`;if($('daylight').checked&&altitude(h,sun,s)>0)bands+=`<span style="position:absolute;inset:0 auto 0 ${i/144*100}%;width:.75%;background:#edca8e0c"></span>`;}return `<div class="row"><button data-body="${j}" class="${(focusLayer==='body-'+j||(!focusLayer&&j===selected))?'active':''}" style="color:${bb.color}">● ${bb.name}</button><div class="track">${bands}<span class="diamond" style="left:${mm.tr/24*100}%;background:${bb.color}"></span><span class="marker" style="left:${s.h/24*100}%"></span></div><span class="duration">${mm.total===24?'All day':mm.total===0?'Below all day':dur(mm.total)}</span></div>`}).join('');document.querySelectorAll('[data-body]').forEach(el=>el.onclick=()=>{
  selected=+el.dataset.body;focusLayer='body-'+selected;
